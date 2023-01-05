@@ -34,10 +34,10 @@ def isValid(url):
 	return requests.post("https://g.api.mega.co.nz/cs", params=params, data=data).json() == -2
 
 valid = []
-print(f"Opening {args.input}")
-
 toCheck = []
+
 if args.input:
+	print(f"Opening {args.input}")
 	with open(args.input, "r") as f:
 		toCheck = f.read().split("\n")
 if args.args:
