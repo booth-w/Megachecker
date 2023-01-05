@@ -11,6 +11,7 @@ parser = argparse.ArgumentParser(description="Scrapes site and returns valid meg
 parser.add_argument("-m", "--mode", type=str, required=True, help="Mode of the program [scrape/list]")
 parser.add_argument("-i", "--input", type=str, help="Input file")
 parser.add_argument("-o", "--output", type=str, help="Output file")
+parser.add_argument("--retry", type=str, help="Number of times to retry before continuing (default: 5)")
 parser.add_argument("args", nargs=argparse.REMAINDER, help="Links to search (-i to search from file)")
 
 args = parser.parse_args()
@@ -58,8 +59,20 @@ print(f"Checking {len(links)} links")
 start = time.perf_counter()
 for i, a in enumerate(l := links):
 	print(f"Checking {i+1} / {len(l)}: {a}: ", end="")
-	if isValid_ := isValid(a):
-		valid.append(f"{a}\n")
+	retry = 0
+
+	while True:
+		try:
+			if isValid_ := isValid(a):
+				valid.append(f"{a}\n")
+			break
+		except:
+			retry += 1
+			retryMax = args.retry if args.retry else 5
+			if retry == retryMax:
+				print("Failed. Skipping")
+				break
+			print(f"Failed. Retrying ({retry}/{retryMax})")
 	print("valid" if isValid_ else "invalid")
 
 print(f"Found {len(valid)} valid links in {round(time.perf_counter() - start)} seconds")
