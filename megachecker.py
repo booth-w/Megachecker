@@ -11,7 +11,8 @@ parser = argparse.ArgumentParser(description="Scrapes site and returns valid meg
 parser.add_argument("-m", "--mode", type=str, required=True, help="Mode of the program [scrape/list]")
 parser.add_argument("-i", "--input", type=str, help="Input file")
 parser.add_argument("-o", "--output", type=str, help="Output file")
-parser.add_argument("--retry", type=str, help="Number of times to retry before continuing (default: 5)")
+parser.add_argument("--retry", type=int, help="Number of times to retry before continuing (default: 5)")
+parser.add_argument("--no-folder", action="store_true", help="Removes folder form URL")
 parser.add_argument("args", nargs=argparse.REMAINDER, help="Links to search (-i to search from file)")
 
 args = parser.parse_args()
@@ -45,7 +46,7 @@ if args.args:
 		toCheck.append(a)
 
 if args.mode == "list":
-	links = [a for a in toCheck if re.compile(r"https:\/\/mega\.nz\/(file|folder)\/[\s\S]*#[\s\S]*").match(a)]
+	links = [(re.match(r".{54}", a)[0] if args.no_folder else a) for a in toCheck if re.compile(r"https:\/\/mega\.nz\/(file|folder)\/[\s\S]*#[\s\S]*").match(a)]
 else:
 	links = []
 	for a in [a for a in toCheck if re.compile(r"https?:\/\/").match(a)]:
@@ -58,11 +59,11 @@ else:
 print(f"Checking {len(links)} links")
 start = time.perf_counter()
 for i, a in enumerate(l := links):
-	print(f"Checking {i+1} / {len(l)}: {a}: ", end="")
 	retry = 0
 
 	while True:
 		try:
+			print(f"Checking {i+1} / {len(l)}: {a}: ", end="")
 			if isValid_ := isValid(a):
 				valid.append(f"{a}\n")
 			break
@@ -73,7 +74,10 @@ for i, a in enumerate(l := links):
 				print("Failed. Skipping")
 				break
 			print(f"Failed. Retrying ({retry}/{retryMax})")
-	print("valid" if isValid_ else "invalid")
+	try:
+		print("valid" if isValid_ else "invalid")
+	except:
+		pass
 
 print(f"Found {len(valid)} valid links in {round(time.perf_counter() - start)} seconds")
 
