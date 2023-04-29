@@ -92,4 +92,4 @@ if (len(valid) != 0):
 
 	if (i == "y"):
 		for a in valid:
-			webbrowser.get("open -a /Applications/Google\ Chrome.app %s").open_new_tab(a)
+			os.system(f"xdg-open {a}")
